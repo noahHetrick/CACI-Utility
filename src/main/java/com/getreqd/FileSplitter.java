@@ -112,7 +112,7 @@ public class FileSplitter {
 					InputStream inputStream = new BufferedInputStream(new FileInputStream(splitFile));
 					int data = inputStream.read();
 					
-					System.out.println("Size of the file is: " + splitFile.length());
+					//System.out.println("Size of the file is: " + splitFile.length());
 					
 					// Loop through every byte in the .caci file
 					while (data != -1) {

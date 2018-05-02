@@ -13,7 +13,7 @@ public class Checksum {
 	public static void main(String args[]) throws NoSuchAlgorithmException, FileNotFoundException, IOException
 	{
 		//Create checksum for this file
-		File file = new File("/Users/JustaViet/Desktop/Capstone/test.iso");
+		File file = new File(args[0]);
  
 		//Use MD5 algorithm
 		MessageDigest md5Digest = MessageDigest.getInstance("MD5");
@@ -21,8 +21,8 @@ public class Checksum {
 		//Get the checksum
 		String checksum = getFileChecksum(md5Digest, file);
  
-		//see checksum
-		System.out.println(checksum);
+		//see checksum //test purposes
+		System.out.println(file.getName() + " MD5: " + checksum);
 	}
 	
 	public static String getFileChecksum(MessageDigest digest, File file) throws IOException
@@ -39,7 +39,7 @@ public class Checksum {
 	        digest.update(byteArray, 0, bytesCount);
 	    };
      
-	    //close the stream; We don't need it now.
+	    //close the stream; we don't need it now.
 	    fis.close();
      
 	    //Get the hash's bytes

@@ -4,6 +4,9 @@ import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
+import java.util.LinkedList;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -28,7 +31,6 @@ public class Driver extends JFrame {
 
 		// Initialize the user interface
 		initUI();
-
 	}
 
 	public final static void initUI() {
@@ -65,12 +67,12 @@ public class Driver extends JFrame {
 		JButton buttonBuild = new JButton("Build");
 		JButton buttonSettings = new JButton("Settings");
 		JButton buttonExit = new JButton("Exit");
-		
+
 		// Create slider to make variable splitting sizes
 		JSlider partitionSize = new JSlider(0, 10);
 		//remove the border if it's not worth it and the space is better used for ticks
 		partitionSize.setBorder(BorderFactory.createTitledBorder("Partition size (1% to 10%)"));
-		
+
 		partitionSize.setMajorTickSpacing(1);
 		partitionSize.setPaintTicks(true);
 		partitionSize.setPaintLabels(true);
@@ -128,7 +130,6 @@ public class Driver extends JFrame {
 				System.exit(0);
 
 			}
-
 		});
 
 		// Create button action listener
@@ -146,20 +147,18 @@ public class Driver extends JFrame {
 					// Call create class
 					Create cr = new Create();
 					cr.dumpMedia(operatingSystem, inputFile, outputPath); // Pass inputFile as File and outputPath as
-																			// String
-
+					// String
 					// Clear UI text fields on complete
 					clearTextFields(inputFileField, outputDirectoryField);
 
 				}
-
 			}
-
 		});
 
 		// Build button action listener
 		buttonBuild.addActionListener(new ActionListener() {
 
+			boolean failed;
 			@Override
 			public void actionPerformed(ActionEvent e) {
 
@@ -170,19 +169,47 @@ public class Driver extends JFrame {
 					String outputPath = outputDirectoryField.getText();
 
 					// Call assemble class
-					Assemble as = new Assemble();
-					as.buildISO(inputFile, outputPath); // Pass inputFile as File and outputPath as String
+					try {
+						String reLoad = Log.checkHashes(inputFile.getParent());
+System.out.println(reLoad);
+						if(reLoad.equals(""))
+						{
+							//we did not fail. do the assemble
+							failed = false;						
+						}
+
+						else
+						{
+							
+							
+							//we did fail. dont assemble
+							failed = true;
+
+							JOptionPane.showMessageDialog(window, reLoad);
+						}
+
+
+
+					} catch (IOException | NoSuchAlgorithmException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+
+					if(!failed) 
+					{
+						Assemble as = new Assemble();
+						as.buildISO(inputFile, outputPath); // Pass inputFile as File and outputPath as String
+						JOptionPane.showMessageDialog(window, "Assemble completed");
+					}
 
 					// Clear UI text fields on complete
 					clearTextFields(inputFileField, outputDirectoryField);
 
 				}
-
 			}
-
 		});
-		
-		// Split button action listener
+
+		// button action listener
 		buttonRename.addActionListener(new ActionListener() {
 
 			@Override
@@ -193,20 +220,25 @@ public class Driver extends JFrame {
 					// Create variables for method call
 					File inputFile = new File(inputFileField.getText());
 					String outputPath = outputDirectoryField.getText();
-					
+
 					//get the size of the desired partion size from the slider
 					int size = partitionSize.getValue();
-				
+
 					// Call split class
 					Split.splitISO(inputFile, outputPath, Integer.toString(size)); // Pass inputFile as File and outputPath as String
+
+					try {
+						Log.makeHashes(outputPath);
+					} catch (NoSuchAlgorithmException | IOException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
 
 					// Clear UI text fields on complete
 					clearTextFields(inputFileField, outputDirectoryField);
 
 				}
-
 			}
-
 		});
 
 		// Add inputPanel components to inputPanel
@@ -242,7 +274,6 @@ public class Driver extends JFrame {
 		window.pack();
 		window.setLocationByPlatform(true);
 		window.setVisible(true);
-
 	}
 
 	public static boolean validateInput(JFrame window, JTextField inputFileField, JTextField outputDirectoryField) {
@@ -256,7 +287,6 @@ public class Driver extends JFrame {
 
 			showError(window, "Either input or output has no value.");
 			return false;
-
 		}
 
 		// Create temporary I/O file objects
@@ -269,7 +299,6 @@ public class Driver extends JFrame {
 			// On error, write to console.
 			showError(window, "Unable to identify input file: " + "\n'" + input + "'");
 			return false;
-
 		}
 
 		// Check to make sure the output directory exists.
@@ -278,27 +307,22 @@ public class Driver extends JFrame {
 			// On error, write to console.
 			showError(window, "Unable to identify output directory: " + "\n'" + output + "'");
 			return false;
-
 		}
 
 		// If no problems are found, return true.
 		return true;
-
 	}
 
 	public static void clearTextFields(JTextField inputFileField, JTextField outputDirectoryField) {
 
 		inputFileField.setText("");
 		outputDirectoryField.setText("");
-
 	}
 
 	public static void showError(JFrame window, String message) {
 
 		System.err.println(message);
 		JOptionPane.showMessageDialog(window, message);
-
 	}
-
 }
 
